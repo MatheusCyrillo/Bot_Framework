@@ -17,22 +17,22 @@ namespace ChatBot.Controllers
         public static string Response(JsonObject response)
         {
 
-            string resposta = string.Empty;
+            string botResposta = string.Empty;
             foreach (var item in response.entities)
                 {
                     switch (item.type)
                     {
                         case "Fatura::Vencimento":
-                        resposta = "Sua fatura vence na data 22/12!";
+                        botResposta = "Sua fatura vence na data 22/12!";
                         break;
 
                         case "Fatura::Valor":
-                        resposta = "O valor da sua fatura é de R$250,00!";
+                        botResposta = "O valor da sua fatura é de R$250,00!";
                         break;
                     }
                 }
             
-            return resposta;
+            return botResposta;
         }
 
     
