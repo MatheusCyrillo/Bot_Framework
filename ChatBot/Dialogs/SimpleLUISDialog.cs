@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using ChatBot.Ultils;
 
 namespace ChatBot.Dialogs
 {
@@ -16,51 +17,76 @@ namespace ChatBot.Dialogs
     public class SimpleLUISDialog : LuisDialog<object>
     {
 
+        string email;
 
+        //Alterando dados
         [LuisIntent("AlterarDados")]
-        //sending the payment by email
         public async Task Alterar(IDialogContext context, IAwaitable<IMessageActivity> activity, LuisResult result)
         {
-            // logic to retrieve the current payment info..
-            var email = "example@email.com";
+            EntityRecommendation entidade;
+            if (result.TryFindEntity("E-mail", out entidade))
+            {
 
-            
-
-          //  PromptDialog.Confirm(context, AfterEmailConfirmation, $"Enviaremos o boleto para este e-mail: {email}, você gostaria de trocá-lo?");
+                email = "example@email.com"; // linha para teste, correto é fazer uma busca no banco;
+                PromptDialog.Confirm(context, TrocarEmail, $"Enviaremos o boleto para este e-mail: {email}, você gostaria de trocá-lo?");
+            }
+            else
+            {
+                await context.PostAsync($"Não entendi o que você gostaria de alterar!");
+            }
         }
 
-        //private async Task AfterEmailConfirmation(IDialogContext context, IAwaitable<bool> result)
-        //{
-        //    try
-        //    {
-        //        var response = await result;
+        IAwaitable<bool> result2;
+        private async Task TrocarEmail(IDialogContext context, IAwaitable<bool> result)
+        {
+            
+            if (await result || await result2)
+            {
+                result2 = result;
+                var response = await result;
 
-        //        // if the way to store the payment email is the same as the one used to store the email when going through the ChangeInfo intent, then you can use the same After... method; otherwise create a new one
-        //        PromptDialog.Text(context, AfterEmailProvided, "What's your current email?");
-        //    }
-        //    catch
-        //    {
-        //        // here handle your errors in case the user doesn't not provide an email
-        //    }
+                PromptDialog.Text(context, AtualizandoEmail, "Qual é o seu e-mail?");
+                
 
-        //    context.Wait(this.MessageReceived);
-        //}
+            }
+            else
+            {
+                await context.PostAsync($"Ok, o boleto foi enviado para o e-mail: {email}.");
+            }
+            
+        }
 
-        //private async Task AfterEmailProvided(IDialogContext context, IAwaitable<string> result)
-        //{
-        //    try
-        //    {
-        //        var email = await result;
+        private async Task AtualizandoEmail(IDialogContext context, IAwaitable<string> result)
+        {
+            string confirmaEmail = result.ToString();
+           
+            if (Ultil.IsValidEmail(confirmaEmail))
+            {
+                PromptDialog.Confirm(context, ConfirmarEmail, $"Ok, você confirma que esse e-mail {confirmaEmail} é o correto?");
+            }
+            else
+            {
+                await context.PostAsync($"Esse é um e-mail inválido!");
+                
+                await TrocarEmail(context, result2);
+            }
+            
+        }
 
-        //        // logic to store your email...
-        //    }
-        //    catch
-        //    {
-        //        // here handle your errors in case the user doesn't not provide an email
-        //    }
+        private async Task ConfirmarEmail(IDialogContext context, IAwaitable<bool> result)
+        {
+            string confirmaEmail = result.ToString();
 
-        //    context.Wait(this.MessageReceived);
-        //}
+            if (Ultil.IsValidEmail(confirmaEmail))
+            {
+                PromptDialog.Confirm(context, ConfirmarEmail, $"Ok, você confirma que esse e-mail {confirmaEmail} é o correto?");
+            }
+            else
+            {
+
+            }
+
+        }
 
         [LuisIntent("Pagar")]
         //sending the payment by email
@@ -80,7 +106,7 @@ namespace ChatBot.Dialogs
         [LuisIntent("None")]
         public async Task None(IDialogContext context, LuisResult result)
         {
-            await context.PostAsync("sorry, I dont understad");
+            await context.PostAsync("Desculpe, eu não te entendi.");
             context.Wait(MessageReceived);
         }
 
