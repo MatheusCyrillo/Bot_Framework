@@ -21,69 +21,63 @@ namespace ChatBot.Dialogs
 
         //Alterando dados
         [LuisIntent("AlterarDados")]
-        public async Task Alterar(IDialogContext context, IAwaitable<IMessageActivity> activity, LuisResult result)
+        public async Task AlterarDados(IDialogContext context, IAwaitable<IMessageActivity> activity, LuisResult result)
         {
             EntityRecommendation entidade;
             if (result.TryFindEntity("E-mail", out entidade))
             {
-
-                email = "example@email.com"; // linha para teste, correto é fazer uma busca no banco;
-                PromptDialog.Confirm(context, TrocarEmail, $"Enviaremos o boleto para este e-mail: {email}, você gostaria de trocá-lo?");
+                email = "EmailDoBanco@email.com"; // linha para teste, correto é fazer uma busca no banco;
+                PromptDialog.Confirm(context, TrocarEmail, $"Seu email atual é: {email}, você gostaria de trocá-lo?");
             }
             else
             {
-                await context.PostAsync($"Não entendi o que você gostaria de alterar!");
+                string [] informacoes = { "Email", "telefone", "endereco" };
+                PromptOptions<string> options = new PromptOptions<string>("Qual das seguintes informacoes você quer alterar?",
+                    "desculpe, selecione uma das opcoes validas", "desculpe, nao podemos atualizar essa informacao por aqui, por favbor ligue para 08005263", informacoes, 2);
+                //PromptDialog.Choice<string>(context, AlterarInfo, options);
             }
         }
 
-        IAwaitable<bool> result2;
+
+
         private async Task TrocarEmail(IDialogContext context, IAwaitable<bool> result)
         {
-            
-            if (await result || await result2)
+            if (await result)
             {
-                result2 = result;
-                var response = await result;
-
                 PromptDialog.Text(context, AtualizandoEmail, "Qual é o seu e-mail?");
-                
-
             }
             else
             {
                 await context.PostAsync($"Ok, o boleto foi enviado para o e-mail: {email}.");
-            }
-            
+            }  
         }
+
 
         private async Task AtualizandoEmail(IDialogContext context, IAwaitable<string> result)
         {
-            string confirmaEmail = result.ToString();
-           
-            if (Ultil.IsValidEmail(confirmaEmail))
+            IMessageActivity Activity = context.Activity.AsMessageActivity();
+            email = Activity.Text;
+
+            if (Ultil.IsValidEmail(email))
             {
-                PromptDialog.Confirm(context, ConfirmarEmail, $"Ok, você confirma que esse e-mail {confirmaEmail} é o correto?");
+                PromptDialog.Confirm(context, ConfirmarEmail, $"Ok, você confirma que esse e-mail {email} está correto?");
             }
             else
             {
-                await context.PostAsync($"Esse é um e-mail inválido!");
-                
-                await TrocarEmail(context, result2);
+                PromptDialog.Text(context, AtualizandoEmail, $"Esse é um e-mail inválido, por favor entre com novo email valido.");
             }
             
         }
 
         private async Task ConfirmarEmail(IDialogContext context, IAwaitable<bool> result)
         {
-            string confirmaEmail = result.ToString();
-
-            if (Ultil.IsValidEmail(confirmaEmail))
+            if (await result)
             {
-                PromptDialog.Confirm(context, ConfirmarEmail, $"Ok, você confirma que esse e-mail {confirmaEmail} é o correto?");
+                await context.PostAsync($"Ok, enviaremos seu boleto para o e-mail: {email}.");
             }
             else
             {
-
+                PromptDialog.Text(context, AtualizandoEmail, "Qual é o seu e-mail?");
             }
 
         }
