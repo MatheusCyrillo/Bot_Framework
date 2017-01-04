@@ -58,6 +58,7 @@ namespace ChatBot.Dialogs
             IMessageActivity Activity = context.Activity.AsMessageActivity();
             email = Activity.Text;
 
+
             if (Ultil.IsValidEmail(email))
             {
                 PromptDialog.Confirm(context, ConfirmarEmail, $"Ok, você confirma que esse e-mail {email} está correto?");
@@ -82,6 +83,19 @@ namespace ChatBot.Dialogs
 
         }
 
+        [LuisIntent("Pagar")]
+        //sending the payment by email
+        public async Task Pagar(IDialogContext context, LuisResult result)
+        {
+            // logic to retrieve the current payment info..
+            var valor = "200,00";
+            var linhaDigitavel = "592030592-3239";
+            var data = "05/01/2016";
+            var nome = "Michele";  
+              
+            await context.PostAsync($"Prezado {nome}, sua fatura está no valor de R${valor}, com a data de vencimento em {data}. Linha digitável: {linhaDigitavel} ");
+            context.Wait(MessageReceived);
+        }
 
 
         [LuisIntent("Pagar")]
