@@ -58,6 +58,7 @@ namespace ChatBot.Dialogs
             IMessageActivity Activity = context.Activity.AsMessageActivity();
             email = Activity.Text;
 
+
             if (Ultil.IsValidEmail(email))
             {
                 PromptDialog.Confirm(context, ConfirmarEmail, $"Ok, você confirma que esse e-mail {email} está correto?");
@@ -93,6 +94,51 @@ namespace ChatBot.Dialogs
             var nome = "Michele";  
               
             await context.PostAsync($"Prezado {nome}, sua fatura está no valor de R${valor}, com a data de vencimento em {data}. Linha digitável: {linhaDigitavel} ");
+            context.Wait(MessageReceived);
+        }
+
+
+        [LuisIntent("Pagar")]
+        //sending the payment by email
+        public async Task Pagar(IDialogContext context, LuisResult result)
+        {
+            // logic to retrieve the current payment info..
+            var valor = "200,00";
+            var linhaDigitavel = "592030592-3239";
+            var data = "05/01/2016";
+            var nome = "Michele";  
+              
+            await context.PostAsync($"Prezado {nome}, sua fatura está no valor de R${valor}, com a data de vencimento em {data}. Linha digitável: {linhaDigitavel} ");
+            context.Wait(MessageReceived);
+        }
+        [LuisIntent("Cancelar")]
+        public async Task Cancelar(IDialogContext context, LuisResult result)
+        {
+            await context.PostAsync("Para cancelar, é necessário quitar os eventuais débitos em atraso. Por favor, ligue para 10611 para maiores informações.");
+            context.Wait(MessageReceived);
+        }
+
+        [LuisIntent("NaoDevo")]
+        public async Task naoDevo(IDialogContext context, LuisResult result)
+        {
+            int mes = 12 ;
+            double valor = 50.00;
+
+            PromptDialog.Text(context, ConfimaPagamento, $"Consta em aberto a parcela do mês" + mes+" no valor de R$ "+valor+". Qual mês e ano você efetuou o pagamento?");
+            context.Wait(MessageReceived);
+        }
+
+        private Task ConfimaPagamento(IDialogContext context, IAwaitable<string> result)
+        {
+            throw new NotImplementedException();
+        }
+
+        [LuisIntent("NaoConhecoDevedor")]
+        public async Task NaoConhecoDevedor(IDialogContext context, LuisResult result)
+        {
+            
+            await context.PostAsync("Desculpe pelo incomodo, esse telefone será retirado de nossos bancos de dados.");
+            //retira o telefone do banco
             context.Wait(MessageReceived);
         }
 
