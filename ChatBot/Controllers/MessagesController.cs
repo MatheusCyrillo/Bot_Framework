@@ -12,21 +12,24 @@ using System.Linq;
 using Microsoft.Bot.Builder.Dialogs;
 using ChatBot.Dialogs;
 
+
 namespace ChatBot.Controllers
 {
     public class MessagesController : ApiController
     {
-
-        string intencaoHistoria = string.Empty;
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
+            Activity reply;
+            ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
             if (activity.Type == ActivityTypes.Message)
             {
                 await Conversation.SendAsync(activity, () => new SimpleLUISDialog());
             }
             else
             {
-                HandleSystemMessage(activity);
+               reply = HandleSystemMessage(activity);
+               
+                connector.Conversations.ReplyToActivity(reply);
             }
             var response = Request.CreateResponse(HttpStatusCode.OK);
             return response;
@@ -44,6 +47,9 @@ namespace ChatBot.Controllers
                 // Handle conversation state changes, like members being added and removed
                 // Use Activity.MembersAdded and Activity.MembersRemoved and Activity.Action for info
                 // Not available in all channels
+                var nome = "Michele";
+                Activity reply = message.CreateReply($"Olá { nome }. Pague seu débito com 20% de desconto. Acesse: https://sky.negocie.online/2YWLJFD e retire seu boleto.");
+                return reply;
             }
             else if (message.Type == ActivityTypes.ContactRelationUpdate)
             {
